@@ -23,6 +23,7 @@ class AuthController {
       return res.json({
         hash: `${hash}.${expires}`,
         phone,
+        otp,
       });
     } catch (err) {
       console.log(err);
@@ -31,19 +32,22 @@ class AuthController {
     //Hash is combination of phone number otp and expiry time
     res.json({ hash: hash });
   }
-  async verifyOtp(req, re) {
+  async verifyOtp(req, res) {
     const { otp, phone, hash } = req.body;
+    console.log(typeof hash);
     if (!otp || !phone || !hash) {
       res.status(400).json("All fields are requried");
     }
-    const [hashedOtp, expires] = hash.spilt(".");
+    let splitted = hash.split(".");
+    let hashedOtp = splitted[0];
+    let expires = splitted[1];
     if (Date.now() > +expires) {
-      res.status(400).json("Otp expired");
+      return res.status(400).json("Otp expired");
     }
     const data = `${phone}.${otp}.${expires}`;
     const isValid = otpService.verifyOtp(hashedOtp, data);
     if (!isValid) {
-      res.status(400).json({ message: "Inavlid OTP" });
+      return res.status(400).json({ message: "Inavlid OTP" });
     }
     let user;
 
@@ -58,12 +62,12 @@ class AuthController {
     }
 
     // Access Token
-    const { accessToken, refreshToken } = tokenService.generateTokens();
-
+    const { accessToken, refreshToken } = await tokenService.generateTokens({ _id: user._id, activated: false });
     res.cookie("refreshtoken", refreshToken, {
       maxAge: 1000 * 60 * 60 * 24 * 30,
       httpOnly: true,
     });
+
     res.json({ accessToken });
   }
 }
