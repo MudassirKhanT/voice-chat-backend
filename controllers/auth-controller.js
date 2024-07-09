@@ -2,6 +2,8 @@ const hashService = require("../services/hash-service");
 const otpService = require("../services/otp-service");
 const userService = require("../services/user-service");
 const tokenService = require("../services/token-service");
+
+const UserDto = require("../dtos/user-dto");
 class AuthController {
   async sendOtp(req, res) {
     //Logic
@@ -19,7 +21,7 @@ class AuthController {
     const hash = hashService.hashOtp(data);
     //send otp
     try {
-      await otpService.sendBySms(phone, otp);
+      //await otpService.sendBySms(phone, otp);
       return res.json({
         hash: `${hash}.${expires}`,
         phone,
@@ -68,7 +70,9 @@ class AuthController {
       httpOnly: true,
     });
 
-    res.json({ accessToken });
+    const userDto = new UserDto(user);
+
+    res.json({ accessToken, user: userDto });
   }
 }
 
