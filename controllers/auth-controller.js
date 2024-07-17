@@ -9,7 +9,7 @@ class AuthController {
     //Logic
     const { phone } = req.body;
     if (!phone) {
-      res.status(400).json({ message: "phone feild is required" });
+      return res.status(400).json({ message: "phone feild is required" });
     }
     // Generate 4 digit random number
     const otp = await otpService.generateOtp();
@@ -29,10 +29,8 @@ class AuthController {
       });
     } catch (err) {
       console.log(err);
-      res.status(500).json({ message: "message sending failed" });
+      return res.status(500).json({ message: "message sending failed" });
     }
-    //Hash is combination of phone number otp and expiry time
-    res.json({ hash: hash });
   }
   async verifyOtp(req, res) {
     const { otp, phone, hash } = req.body;
@@ -77,7 +75,7 @@ class AuthController {
     });
     const userDto = new UserDto(user);
 
-    res.json({ user: userDto, auth: true });
+    return res.json({ user: userDto, auth: true });
   }
 }
 
